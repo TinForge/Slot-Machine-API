@@ -17,7 +17,7 @@ public class BalanceService
         {
             var initialBalance = new Balance
             {
-                Amount = (BsonDecimal128) 1000m // Initial balance
+                Amount = 1000m // Initial balance
             };
 
             await _balanceCollection.InsertOneAsync(initialBalance);
@@ -30,29 +30,23 @@ public class BalanceService
     }
 
 
-    public async Task<decimal> UpdateBalanceAsync(decimal amount)
+    public async Task<decimal> UpdateBalanceAsync(decimal newBalance)
     {
-        if (amount <= 0)
+        if (newBalance <= 0)
             throw new ArgumentException("Amount must be greater than zero.");
 
         var balance = await _balanceCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
 
-        // var documents = await _balanceCollection.Find(new BsonDocument()).ToListAsync();
-        // Console.WriteLine($"Number of documents found: {documents.Count()}");
-    
-        // foreach (var doc in documents)
-        //     Console.WriteLine($"Document ID: {doc.Id}, Amount: {doc.Amount}");
-
         if (balance == null)
             throw new InvalidOperationException("Balance not initialized.");
 
-        var update = Builders<Balance>.Update.Inc(b => b.Amount, (BsonDecimal128) amount);
+        var update = Builders<Balance>.Update.Set(b => b.Amount, newBalance);
         var filter = Builders<Balance>.Filter.Eq(b => b.Id, balance.Id);
         var result = await _balanceCollection.UpdateOneAsync(filter, update);
 
-         if (result.ModifiedCount == 0)
+        if (result.ModifiedCount == 0)
             throw new InvalidOperationException("Failed to update balance.");
 
-        return (decimal)balance.Amount + amount;
+        return newBalance;
     }
 }

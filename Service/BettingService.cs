@@ -24,17 +24,17 @@ public class BettingService
         var random = new Random();
         bool isWin = random.Next(2) == 0; // 50% chance to win
 
-        BsonDecimal128 newBalance = balance.Amount;
+        decimal newBalance = balance.Amount;
 
         if (isWin)
-            newBalance = new BsonDecimal128((decimal)balance.Amount + betAmount);
+            newBalance += betAmount;
         else
-            newBalance = new BsonDecimal128((decimal)balance.Amount - betAmount);
+            newBalance -= betAmount;
 
         // Update the balance in the database
         var update = Builders<Balance>.Update.Set(b => b.Amount, newBalance);
         await _balanceCollection.UpdateOneAsync(new BsonDocument(), update);
 
-        return (decimal)newBalance;
+        return newBalance;
     }
 }

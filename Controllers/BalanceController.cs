@@ -25,8 +25,8 @@ public class BalanceController : ControllerBase
         }
     }
 
-    [HttpPost("add")]
-    public async Task<IActionResult> AddBalance([FromBody] BalanceRequest request)
+    [HttpPost("update")]
+    public async Task<IActionResult> UpdateBalance([FromBody] BalanceRequest request)
     {
         try
         {
