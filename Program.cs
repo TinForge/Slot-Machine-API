@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
+Console.WriteLine("Starting...");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,18 +10,59 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Add services to the container.
-builder.Services.Configure<MongoDBSettings>(
-    builder.Configuration.GetSection(nameof(MongoDBSettings)));
+builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nameof(MongoDbSettings)));
 
-builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<MongoDBSettings>>().Value);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
 
-builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
-    new MongoClient(sp.GetRequiredService<IOptions<MongoDBSettings>>().Value.ConnectionString));
+builder.Services.AddSingleton<IMongoClient, MongoClient>(sp => new MongoClient(sp.GetRequiredService<IOptions<MongoDbSettings>>().Value.ConnectionString));
+
+// Register IMongoDatabase as a scoped service
+builder.Services.AddScoped<IMongoDatabase>(sp =>
+{
+    var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
+    var client = sp.GetRequiredService<IMongoClient>();
+    return client.GetDatabase(settings.DatabaseName);
+});
+
+
+// Register Services
+builder.Services.AddScoped<BalanceService>();
+builder.Services.AddScoped<BettingService>();
 
 builder.Services.AddControllers();
 
+//Console.WriteLine("Test");
 
 var app = builder.Build();
+
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var mongoClient = services.GetRequiredService<IMongoClient>();
+    try
+    {
+        // Attempt to connect to the server
+        mongoClient.ListDatabaseNames(); // This will throw an exception if the connection is not successful
+        Console.WriteLine("Connected successfully to MongoDB.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Failed to connect to MongoDB: {ex.Message}");
+    }
+
+    try
+    {
+        var balanceService = services.GetRequiredService<BalanceService>();
+        await balanceService.InitializeBalanceAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"An error occurred during initialization: {ex.Message}");
+    }
+}
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -32,4 +74,3 @@ if (app.Environment.IsDevelopment())
 //app.UseAuthorization();
 app.MapControllers();
 app.Run();
-
