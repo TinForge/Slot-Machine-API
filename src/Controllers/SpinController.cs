@@ -2,13 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SpinController : ControllerBase
+public class SlotsController : ControllerBase
 {
-    private readonly SpinService _spinService;
+    private readonly SlotsService _slotsService;
 
-    public SpinController(SpinService spinService)
+    public SlotsController(SlotsService spinService)
     {
-        _spinService = spinService;
+        _slotsService = spinService;
     }
 
     [HttpPost("configure")]
@@ -16,7 +16,7 @@ public class SpinController : ControllerBase
     {
         try
         {
-            var newMatrix = await _spinService.ConfigureMatrixAsync(request.Width, request.Height);
+            var newMatrix = await _slotsService.ConfigureMatrixAsync(request.Width, request.Height);
             return Ok(new { Width = newMatrix[0], Height = newMatrix[1] });
         }
         catch (Exception ex)
@@ -30,7 +30,7 @@ public class SpinController : ControllerBase
     {
         try
         {
-            var result = await _spinService.SpinAsync(request.BetAmount);
+            var result = await _slotsService.SpinAsync(request.BetAmount);
             return Ok(result);
         }
         catch (Exception ex)

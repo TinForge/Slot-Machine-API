@@ -2,12 +2,12 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
-public class SpinService
+public class SlotsService
 {
     private readonly IMongoCollection<Balance> _balanceCollection;
     private readonly IMongoCollection<Matrix> _matrixCollection;
 
-    public SpinService(IMongoDatabase database)
+    public SlotsService(IMongoDatabase database)
     {
         _balanceCollection = database.GetCollection<Balance>("balance");
         _matrixCollection = database.GetCollection<Matrix>("matrix");
@@ -32,6 +32,9 @@ public class SpinService
 
         if (matrix == null)
             throw new InvalidOperationException("Matrix not initialized.");
+
+        if (matrix.Width == width && matrix.Height == height)
+            throw new InvalidOperationException("Matrix already configured to dimensions.");
 
         var update = Builders<Matrix>.Update.Set(m => m.Width, width).Set(m => m.Height, height);
         var filter = Builders<Matrix>.Filter.Eq(m => m.Id, matrix.Id);

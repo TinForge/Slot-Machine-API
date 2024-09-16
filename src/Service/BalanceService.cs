@@ -15,16 +15,21 @@ public class BalanceService
         var existingBalance = await _balanceCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
         if (existingBalance == null)
         {
-            var initialBalance = new Balance{Amount = 1000m};
+            var initialBalance = new Balance { Amount = 1000m };
             await _balanceCollection.InsertOneAsync(initialBalance);
         }
     }
 
     public async Task<Balance> GetBalanceAsync()
     {
-        return await _balanceCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
-    }
+        var balance = await _balanceCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
 
+        if (balance != null)
+            return balance;
+        else
+            throw new InvalidOperationException("Balance not initialized.");
+
+    }
 
     public async Task<decimal> UpdateBalanceAsync(decimal newBalance)
     {

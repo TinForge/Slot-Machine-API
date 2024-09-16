@@ -1,21 +1,16 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-Console.WriteLine("Starting...");
-
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nameof(MongoDbSettings)));
 
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
-
 builder.Services.AddSingleton<IMongoClient, MongoClient>(sp => new MongoClient(sp.GetRequiredService<IOptions<MongoDbSettings>>().Value.ConnectionString));
 
-// Register IMongoDatabase as a scoped service
 builder.Services.AddScoped<IMongoDatabase>(sp =>
 {
     var settings = sp.GetRequiredService<IOptions<MongoDbSettings>>().Value;
@@ -23,16 +18,13 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
     return client.GetDatabase(settings.DatabaseName);
 });
 
-
-// Register Services
 builder.Services.AddScoped<BalanceService>();
-builder.Services.AddScoped<SpinService>();
+builder.Services.AddScoped<SlotsService>();
 
-builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
-
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -41,7 +33,6 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        // Attempt to connect to the server
         mongoClient.ListDatabaseNames(); // This will throw an exception if the connection is not successful
         Console.WriteLine("Connected successfully to MongoDB.");
     }
@@ -62,7 +53,7 @@ using (var scope = app.Services.CreateScope())
 
     try
     {
-        var spinService = services.GetRequiredService<SpinService>();
+        var spinService = services.GetRequiredService<SlotsService>();
         await spinService.InitializeMatrixAsync();
     }
     catch (Exception ex)
@@ -72,10 +63,15 @@ using (var scope = app.Services.CreateScope())
 }
 
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+        c.RoutePrefix = string.Empty; // To serve the Swagger UI at the app's root
+    });
 }
 
 //app.UseHttpsRedirection();
