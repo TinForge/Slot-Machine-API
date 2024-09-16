@@ -5,5 +5,5 @@ public class Balance
 {
     [BsonId]
     public ObjectId Id { get; set; }
-    public Decimal Amount { get; set; }
+    public decimal Amount { get; set; }
 }

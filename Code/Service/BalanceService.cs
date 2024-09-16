@@ -15,11 +15,7 @@ public class BalanceService
         var existingBalance = await _balanceCollection.Find(new BsonDocument()).FirstOrDefaultAsync();
         if (existingBalance == null)
         {
-            var initialBalance = new Balance
-            {
-                Amount = 1000m // Initial balance
-            };
-
+            var initialBalance = new Balance{Amount = 1000m};
             await _balanceCollection.InsertOneAsync(initialBalance);
         }
     }

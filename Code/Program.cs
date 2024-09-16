@@ -9,7 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Add services to the container.
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nameof(MongoDbSettings)));
 
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<MongoDbSettings>>().Value);
@@ -27,11 +26,9 @@ builder.Services.AddScoped<IMongoDatabase>(sp =>
 
 // Register Services
 builder.Services.AddScoped<BalanceService>();
-builder.Services.AddScoped<BettingService>();
+builder.Services.AddScoped<SpinService>();
 
 builder.Services.AddControllers();
-
-//Console.WriteLine("Test");
 
 var app = builder.Build();
 
@@ -41,6 +38,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var mongoClient = services.GetRequiredService<IMongoClient>();
+
     try
     {
         // Attempt to connect to the server
@@ -56,6 +54,16 @@ using (var scope = app.Services.CreateScope())
     {
         var balanceService = services.GetRequiredService<BalanceService>();
         await balanceService.InitializeBalanceAsync();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"An error occurred during initialization: {ex.Message}");
+    }
+
+    try
+    {
+        var spinService = services.GetRequiredService<SpinService>();
+        await spinService.InitializeMatrixAsync();
     }
     catch (Exception ex)
     {
