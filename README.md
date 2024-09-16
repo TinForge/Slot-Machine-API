@@ -18,7 +18,7 @@ Follow these instructions to set up and run the project using Docker.
 Clone this repository to your local machine:
 
 ```
-git clone https://github.com/yourusername/my-awesome-project.git
+git clone https://github.com/TinForge/Slot-Machine-API.git
 ```
 
 Build the Docker Image:
