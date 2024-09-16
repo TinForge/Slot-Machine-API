@@ -41,6 +41,9 @@ public class BalanceService
         if (balance == null)
             throw new InvalidOperationException("Balance not initialized.");
 
+        if (balance.Amount == newBalance)
+            throw new InvalidOperationException("Balance is already specified amount.");
+
         var update = Builders<Balance>.Update.Set(b => b.Amount, newBalance);
         var filter = Builders<Balance>.Filter.Eq(b => b.Id, balance.Id);
         var result = await _balanceCollection.UpdateOneAsync(filter, update);
